@@ -17,7 +17,7 @@ public class CallAPI {
         if(newTest){
             restCall.createTestInstance();
         }
-
+        System.out.println("testing git");
     }
 
     }
