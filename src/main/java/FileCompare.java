@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,23 +23,27 @@ public class FileCompare {
     JSONObject currentFrameWorkObject = new JSONObject();
     JSONArray PtTests = new JSONArray();
     FileWriter file;
-    String fileName;
+    String testName;
     List<String> tags;
+    boolean createTest = false;
 
-    public void compare(int fileCount) {
+    public boolean compare(int fileCount) {
 
         JSONArray testCasesInNestedSuite = new JSONArray();
         JSONObject testSuite = new JSONObject();
         JSONArray frameWorkArray = new JSONArray();
 
         try {
-            Object AutomationResultObj = parser.parse(new FileReader("/Users/kkolli/Desktop/GeneratedGroupJsonReport.Json"));
+            Object AutomationResultObj = parser.parse(new FileReader(System.getProperty("user.home") +"/Documents/GeneratedGroupJsonReport.Json"));
             JSONObject automationReportObject = (JSONObject) AutomationResultObj;
 
-            Object PTobj = parser.parse(new FileReader("/Users/kkolli/Desktop/GeneratedJsonReportOfPT.Json"));
-            JSONObject PTinstancesReportObject = (JSONObject) PTobj;
-            PtTests = (JSONArray) PTinstancesReportObject.get("data");
-            file = new FileWriter("/Users/kkolli/Desktop/FileC.Json");
+            Object PTobj = parser.parse(new FileReader(System.getProperty("user.home") +"/Documents/GeneratedJsonReportOfPT.Json"));
+            JSONArray PTinstancesReportObject = (JSONArray) PTobj;
+            for(Object dataSet : PTinstancesReportObject){
+                JSONObject dataValues = (JSONObject) dataSet;
+                PtTests.add(dataValues.get("data"));
+            }
+            file = new FileWriter(System.getProperty("user.home") +"/Documents/TestsToBeCreated.Json");
 
             if(fileCount > 1){
                 frameWorkArray = (JSONArray) automationReportObject.get("testsuites");
@@ -49,7 +54,6 @@ public class FileCompare {
 
             for (Object frameWorkObj : frameWorkArray) {
                 currentFrameWorkObject = (JSONObject) frameWorkObj;
-                System.out.println("Current framework object is  :" + currentFrameWorkObject);
                 if (fileCount > 1) {
                     if (currentFrameWorkObject.get("testsuite") instanceof JSONArray) {
                         testCasesInNestedSuite = (JSONArray) currentFrameWorkObject.get("testsuite");
@@ -76,50 +80,78 @@ public class FileCompare {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
+        return createTest;
         }
 
         public void readingTestCases() {
             boolean match = false;
-            String message = "No message given";
             JSONArray testCases = new JSONArray();
             JSONObject testCaseObject = new JSONObject();
+            JSONArray currentArray = new JSONArray();
             JSONObject PTObject = new JSONObject();
             String status = "skipped";
+            String runTime = "00:00:00";
+            String mins ="00";
 
             try {
                 testCases = (JSONArray) convertJsonObjectToJsonArray(currentFrameWorkObject.get("testcase"));
                 for (Object testcase : testCases) {
                     testCaseObject = (JSONObject) testcase;
-                    fileName = generateTestNameAndTag(testCaseObject.get("classname").toString(),testCaseObject.get("name").toString());
-                    System.out.println("file name is ----"+fileName+" and tag is---"+tags);
+                    testName = generateTestNameAndTag(testCaseObject.get("classname").toString(), testCaseObject.get("name").toString());
+                    BigDecimal bd = new BigDecimal(testCaseObject.get("time").toString());
+                    boolean Mins = false;
+                    String time = (testCaseObject.get("time").toString());
+                    int Seconds = Integer.parseInt(time.split("\\.")[0]);
+                    if (Seconds > 59) {
+                        int Min = Seconds / 60;
+                        if (Min < 9) {
+                            mins = 0 + Integer.toString(Min);
+                        } else {
+                            mins = Integer.toString(Min);
+                        }
+                        String totalTime = mins.concat("." + time.split("\\.")[1]);
+                        bd = new BigDecimal(totalTime);
+                        Mins = true;
+                    }
+                    BigDecimal roundOff = bd.setScale(1, BigDecimal.ROUND_HALF_EVEN);
+                    String duration = roundOff.toString();
+                    runTime = duration.replaceAll("\\.", ":0");
+                    if (!Mins) {
+                        runTime = "00:" + runTime;
+                    } else {
+                        runTime = runTime + ":00";
+                    }
                     if (testCaseObject.containsKey("skipped")) {
                         status = "NO RUN";
+                        runTime = "00:00:00";
                     } else if (testCaseObject.containsKey("failure")) {
                         status = "FAILED";
-                        JSONObject failure = (JSONObject) testCaseObject.get("failure");
-                        message = failure.get("message").toString();
                     } else {
                         status = "PASSED";
                     }
-                    for (Object PTO : PtTests) {
-                        PTObject = (JSONObject) PTO;
-                        if (fileName.equalsIgnoreCase(PTObject.get("name").toString())) {
-                            match = true;
-                            PractiTestRestCalls rest = new PractiTestRestCalls();
-                            rest.uploadOneTestresults(PTObject.get("system_id").toString(), status, message);
-                            break;
+                    label:
+                    for (int i = 0; i < PtTests.size(); i++) {
+                        JSONArray array = (JSONArray) PtTests.get(i);
+                        for (Object PTO : array) {
+                            PTObject = (JSONObject) PTO;
+                            if (testName.equalsIgnoreCase(PTObject.get("name").toString())) {
+                                match = true;
+                                PractiTestRestCalls rest = new PractiTestRestCalls();
+                                rest.uploadOneTestresults(PTObject.get("system_id").toString(), status, runTime);
+                                break label;
+                            }
                         }
                     }
-                    if (!match) {
-                        JSONObject writeObject = new JSONObject();
-                        writeObject.put("name", fileName);
-                        writeObject.put("status", status);
-                        writeObject.put("message", message);
-                        writeObject.put("tags",tags);
-                        writeArray.add(writeObject);
-                    }
-                }
+                            if (!match) {
+                                JSONObject writeObject = new JSONObject();
+                                writeObject.put("name", testName);
+                                writeObject.put("status", status);
+                                writeObject.put("duration", runTime);
+                                writeObject.put("tags", tags);
+                                writeArray.add(writeObject);
+                                createTest = true;
+                            }
+                        }
             }catch(Exception e){
 
             }
@@ -142,7 +174,7 @@ public class FileCompare {
             String itWithoutTag = it.replaceFirst("\\(.*","");
             String fileName = describeWithoutTag.concat(" "+itWithoutTag);
             tags = new ArrayList<String>();
-            Matcher matcher = Pattern.compile("#(\\w+-?(\\w+)?)").matcher(describe+it);
+            Matcher matcher = Pattern.compile("#([A-Za-z-]+)").matcher(describe+it);
             while (matcher.find()) {
                 tags.add(matcher.group(1));
             }

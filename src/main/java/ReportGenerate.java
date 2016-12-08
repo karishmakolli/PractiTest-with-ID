@@ -10,12 +10,12 @@ public class ReportGenerate {
     public static int PRETTY_PRINT_INDENT_FACTOR = 4;
     public int number_of_files = 1;
 
-    public int generateJsonReport() {
+    public int generateJsonReport(String fileLocation) {
         BufferedReader reader = null;
         String xmlLine = null;
         StringBuilder builder = new StringBuilder();
         try {
-            File[] files = new File("/Users/kkolli/Desktop/Results").listFiles();
+            File[] files = new File(fileLocation).listFiles();
             number_of_files = ((files.length) - 1);
             System.out.println("length of files is " + number_of_files);
             for (File file : files) {
@@ -29,9 +29,8 @@ public class ReportGenerate {
             }
             reader.close();
             String xmlValue = builder.toString();
-            System.out.println("xml value is : " + xmlValue);
             JSONObject xmlToJsonObj = XML.toJSONObject(xmlValue);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(new File("/Users/kkolli/Desktop/GeneratedGroupJsonReport.Json")));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File(System.getProperty("user.home") +"/Documents/GeneratedGroupJsonReport.Json")));
             for (int i = 0; i < xmlToJsonObj.toString().split(",").length; i++) {
                 writer.write(xmlToJsonObj.toString(PRETTY_PRINT_INDENT_FACTOR).split(",")[i]);
             }
