@@ -5,19 +5,19 @@ public class CallAPI {
 
     public static void main(String[] args) {
 
-      int fileCount;
-       String fileLocation = args[0].toString();
+       int fileCount;
         //String fileLocation = "/Users/kkolli/desktop/results";
+        String fileLocation = args[0].toString();
         ReportGenerate report = new ReportGenerate();
         fileCount = report.generateJsonReport(fileLocation);
-        PractiTestRestCalls restCall = new PractiTestRestCalls();
-        restCall.generateReportFromPractiTest();
         FileCompare comp = new FileCompare();
-        boolean newTest = comp.compare(fileCount);
-        if(newTest){
-            restCall.createTestInstance();
-        }
-        System.out.println("testing git");
+        comp.getTestCases(fileCount);
+        PractiTestRestCalls restCall = new PractiTestRestCalls();
+        //restCall.createTestSet();
+        restCall.moveTestsToTestSet();
+        restCall.generateReportFromPractiTest();
+        comp.compareTestSetAndUpdateResult();
+
     }
 
     }
