@@ -50,9 +50,6 @@
                 <configuration>
                     <archive>
                         <manifestFile>src/main/Resources/META-INF/MANIFEST.MF</manifestFile>
-                        <manifest>
-                            <mainClass>src/main/java/CallAPI.java</mainClass>
-                        </manifest>
                     </archive>
                 </configuration>
             </plugin>
