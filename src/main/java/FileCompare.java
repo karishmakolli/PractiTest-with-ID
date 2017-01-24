@@ -51,7 +51,7 @@ public class FileCompare {
                     frameWorkArray = (JSONArray) automationReportObject.get("testsuites");
                 }else {
                     JSONObject testsuites = (JSONObject) automationReportObject.get("testsuites");
-                    frameWorkArray = (JSONArray) testsuites.get("testsuite");
+                    frameWorkArray = convertJsonObjectToJsonArray(testsuites.get("testsuite"));
                 }
                 for (Object frameWorkObj : frameWorkArray) {
                     currentFrameWorkObject = (JSONObject) frameWorkObj;
