@@ -57,7 +57,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                    <mainClass>src.main.java.CallAPI</mainClass>
+                                    <mainClass>src.main.java.CallAPI.java</mainClass>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
