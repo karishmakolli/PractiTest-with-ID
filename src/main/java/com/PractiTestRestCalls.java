@@ -1,3 +1,5 @@
+package com;
+
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -52,7 +54,7 @@ public class PractiTestRestCalls {
         String date = dateAndTime.substring(0, 9);
         String testSetBody = "{\"project_id\":\"" + Project_ID + "\",\"name\":\"" + TestSet_Name + " - " + dateAndTime + "\",\"___f_" + custom_field_ID_Automated + "\": {\"value\":\"yes\"},\"___f_" + custom_field_ID_Browser + "\": {\"value\":\"Chrome\"}} ";
         try {
-            BufferedWriter writer= new BufferedWriter(new FileWriter(new File(System.getProperty("user.home") +"/Documents/RejectedTestCases.json")));
+            BufferedWriter writer= new BufferedWriter(new FileWriter(new File(System.getProperty("user.home") +"/Documents/RejectedTestCases.Json")));
             HttpResponse<JsonNode> jsonResponse = Unirest.post("https://prod.practitest.com/api/sets.json")
                     .header("Content-Type", "application/json")
                     .header("Authorization", apiToken)
@@ -133,9 +135,9 @@ public class PractiTestRestCalls {
                     instancesExist = false;
                 }
                 if (jsonResponse.getStatus() != 200) {
-                    System.out.println("Problem fetching data from practiTest test set");
                 }
                 pageNum++;
+                System.out.println("number of pages is "+pageNum);
             }
             for (int i = 0; i < responseArray.toString().split(",").length; i++) {
                 writer.write(responseArray.toString(PRETTY_PRINT_INDENT_FACTOR).split(",")[i]);
