@@ -101,8 +101,8 @@ public class FileCompare {
                             storeResult.put("name", testName);
                             storeResult.put("PTID", PTID);
                             results.add(storeResult);
-
-                        }else{
+                        }
+                        else{
                             System.out.println("No PTID for this test -- * --"+testCaseObject.get("name"));
                             writeArray.put(testcase);
                         }
