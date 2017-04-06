@@ -28,7 +28,7 @@ private static final String apiToken = "custom api_token=c2dd601adf6667751ba04c2
 public void uploadOneTestResult(String instanceId, String status, String duration) {
   String jsonInString = "{\"project_id\":\"" + Project_ID + "\",\"instance_id\":\"" + instanceId + "\",\"run_duration\":\"" + duration + "\",\"steps\":[{\"status\":\"" + status + "\"}]}";
   try {
-    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://prod.practitest.com/api/v1/automated_tests/upload_test_result.json")
+    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://api.practitest.com/api/v1/automated_tests/upload_test_result.json")
                                            .header("Content-Type", "application/json")
                                            .header("Authorization", apiToken)
                                            .body(jsonInString)
@@ -41,7 +41,10 @@ public void uploadOneTestResult(String instanceId, String status, String duratio
   }
 }
 
-public void createTestSet() {
+public void createTestSet(String name) {
+  if(!name.contentEquals("noName")){
+    TestSet_Name = name;
+  }
   DateFormat df = new SimpleDateFormat("dd/MMM/yy HH:mm:ss");
   Calendar calobj = Calendar.getInstance();
   String dateAndTime = df.format(calobj.getTime());
@@ -49,7 +52,7 @@ public void createTestSet() {
   String testSetBody = "{\"project_id\":\"" + Project_ID + "\",\"name\":\"" + TestSet_Name + " - " + dateAndTime + "\",\"___f_" + custom_field_ID_Automated + "\": {\"value\":\"yes\"},\"___f_" + custom_field_ID_Browser + "\": {\"value\":\"Chrome\"}} ";
   try {
     BufferedWriter writer = new BufferedWriter(new FileWriter(new File(System.getProperty("user.home") + "/Documents/RejectedTestCases.Json")));
-    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://prod.practitest.com/api/v1/sets.json")
+    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://api.practitest.com/api/v1/sets.json")
                                            .header("Content-Type", "application/json")
                                            .header("Authorization", apiToken)
                                            .body(testSetBody)
@@ -78,7 +81,7 @@ public void moveTestsToTestSet() {
     FileCompare file = new FileCompare();
     String testsToBeMoved = "{\"project_id\":\"" + Project_ID + "\",\"test_ids\":" + file.getTestCaseID() + "}";
 
-    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://prod.practitest.com/api/v1/sets/" + TestSet_ID + "/add_instances.json")
+    HttpResponse<JsonNode> jsonResponse = Unirest.post("https://api.practitest.com/api/v1/sets/" + TestSet_ID + "/add_instances.json")
                                            .header("Content-Type", "application/json")
                                            .header("Authorization", apiToken)
                                            .body(testsToBeMoved)
@@ -95,7 +98,7 @@ public String getSystemId(String testID) {
   org.json.JSONObject responseObj = new org.json.JSONObject();
   String systemId = "";
   try {
-    HttpResponse<JsonNode> jsonResponse = Unirest.get(" https://prod.practitest.com/api/v1/tests/" + testID + ".json?project_id=" + Project_ID)
+    HttpResponse<JsonNode> jsonResponse = Unirest.get(" https://api.practitest.com/api/v1/tests/" + testID + ".json?project_id=" + Project_ID)
                                            .header("Content-Type", "application/json")
                                            .header("Authorization", apiToken)
                                            .asJson();
@@ -118,7 +121,7 @@ public void generateReportFromPractiTest() {
   try {
     BufferedWriter writer = new BufferedWriter(new FileWriter(new File(System.getProperty("user.home") + "/Documents/GeneratedJsonReportOfPT.Json")));
     while (instancesExist) {
-      HttpResponse<JsonNode> jsonResponse = Unirest.get("https://prod.practitest.com/api/v1/sets/" + TestSet_ID + "/instances.json?project_id=" + Project_ID + "/limit=250&page=" + pageNum)
+      HttpResponse<JsonNode> jsonResponse = Unirest.get("https://api.practitest.com/api/v1/sets/" + TestSet_ID + "/instances.json?project_id=" + Project_ID + "/limit=250&page=" + pageNum)
                                              .header("Content-Type", "application/json")
                                              .header("Authorization", apiToken)
                                              .asJson();
@@ -130,7 +133,6 @@ public void generateReportFromPractiTest() {
       if (jsonResponse.getStatus() != 200) {
       }
       pageNum++;
-      System.out.println("number of pages is " + pageNum);
     }
     for (int i = 0; i < responseArray.toString().split(",").length; i++) {
       writer.write(responseArray.toString(PRETTY_PRINT_INDENT_FACTOR).split(",")[i]);

@@ -164,7 +164,7 @@ public String generatePTID(String it) {
 public void compareTestSetAndUpdateResult() {
   JSONObject PTObject = new JSONObject();
   String testId = " ";
-  int loopNum = 0;
+ // int loopNum = 0;
   try {
     Object PTobj = parser.parse(new FileReader(System.getProperty("user.home") + "/Documents/GeneratedJsonReportOfPT.Json"));
     JSONArray PTinstancesReportObject = (JSONArray) PTobj;
@@ -176,7 +176,6 @@ public void compareTestSetAndUpdateResult() {
       JSONObject testValues = (JSONObject) resultTestCase;
       PractiTestRestCalls restCall = new PractiTestRestCalls();
       String systemId = restCall.getSystemId(testValues.get("PTID").toString());
-      System.out.println("system Id is "+systemId);
 label:
       for (int i = 0; i < PtTests.size(); i++) {
         JSONArray array = (JSONArray) PtTests.get(i);
@@ -185,17 +184,16 @@ label:
           if (PTObject.get("test_system_id").toString().equals(systemId)) {
             PractiTestRestCalls rest = new PractiTestRestCalls();
             rest.uploadOneTestResult(PTObject.get("system_id").toString(), testValues.get("status").toString(), testValues.get("duration").toString());
-            loopNum++;
-            System.out.println("loop number is "+loopNum);
-            if(loopNum == 20){
+            /*loopNum++;
+           if(loopNum == 20){
               loopNum =i;
-              System.out.println("After reset loop num is "+loopNum);
               try {
+                System.out.println("Waiting to pass the next set of requests ... Will wait for 55 secs");
                 Thread.sleep(55000);
               } catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
               }
-            }
+            }*/
             break label;
           }
         }
